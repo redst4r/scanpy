@@ -253,6 +253,8 @@ class Ingest:
     def _init_neighbors(self, adata):
         from umap.distances import named_distances
 
+        self._n_neighbors = adata.uns['neighbors']['params']['n_neighbors']
+
         if 'use_rep' in adata.uns['neighbors']['params']:
             self._use_rep = adata.uns['neighbors']['params']['use_rep']
             self._rep = adata.X if self._use_rep == 'X' else adata.obsm[self._use_rep]
@@ -368,7 +370,7 @@ class Ingest:
         self._adata_new = adata_new
         self._obsm['rep'] = self._same_rep()
 
-    def neighbors(self, k=10, queue_size=5, random_state=0):
+    def neighbors(self, k=None, queue_size=5, random_state=0):
         """\
         Calculate neighbors of `adata_new` observations in `adata`.
 
@@ -383,6 +385,9 @@ class Ingest:
 
         train = self._rep
         test = self._obsm['rep']
+
+        if k is None:
+            k = self._n_neighbors
 
         init = self._initialise_search(
             self._rp_forest, train, test, int(k * queue_size), rng_state=rng_state,
